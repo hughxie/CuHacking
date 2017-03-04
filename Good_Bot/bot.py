@@ -9,6 +9,9 @@ PORT = 6667
 PASS = "oauth:1ums1vm612j3vhtb4ocxztzh77rs4h"
 readbuffer = ""
 MODT = True
+server = []
+game = []
+
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -19,7 +22,7 @@ s.send("JOIN #cuhacking \r\n")
 
 # Method for sending a message
 def Send_message(message):
-    s.send("PRIVMSG #CuHacking :" + message + "\r\n")
+    s.send("PRIVMSG #cuhacking :" + message + "\r\n")
 
 while True:
     readbuffer = readbuffer + s.recv(1024)
@@ -46,6 +49,17 @@ while True:
                 username = usernamesplit[0]
 
                 # Only works after twitch is done announcing stuff (MODT = Message of the day)
+                if username not in server:
+                    server.append(username)
+                    if message <> "!join":
+                        Send_message("Welcome to my stream, " + username + " type !join to join the game.")
+
+                if username not in game and message == "!join":
+                    game.append(username)
+                    Send_message(username + " has joined the game PogChamp")
+                elif message == "!join":
+                    Send_message(username + " , you're already in the game DansGame ")
+
                 if MODT:
                     print (username + ": " + message)
 
