@@ -1,0 +1,2 @@
+python botTest.py
+PAUSE
