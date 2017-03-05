@@ -1,8 +1,8 @@
 import socket, string, time
 from random import randint
 
-#from commands import *
-#from functions import *
+from TfTrivia import *
+from functions import *
 # Set all the variables necessary to connect to Twitch IRC
 HOST = "irc.twitch.tv"
 NICK = "hackbot"
@@ -12,13 +12,17 @@ readbuffer = ""
 MODT = True
 state = "lobby"
 UserWaiting = ""
+modes = ["trivia"]
+mode = "trivia"
 server = []
 game = []
+gameTeam = []
 team1 = []
 team2 = []
-answer = -1
 
-questions = [[0, "Richard is Cool"], [1, "Forest > Aidan"]]
+#problem with this. we need to make the game class, and store it in a
+#variable that is availible throughout the whole bot.py
+gameClass = TfTrivia()
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -28,24 +32,6 @@ s.send("NICK " + NICK + "\r\n")
 s.send("JOIN #cuhacking \r\n")
 
 # Method for sending a message
-def Send_message(message):
-    s.send("PRIVMSG #cuhacking :" + message + "\r\n")
-
-def Send_whisper(message, player):
-    s.send("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
-    #s.send("PRIVMSG #AngelOnFira :test\r\n")
-    time.sleep(1)
-    print("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
-
-def askQuestion(questions):
-    #Pick a random question from the list
-    random = randint(0, len(questions))
-
-    #Ask the question
-    s.send("PRIVMSG #cuhacking :" + quesitons[random][1] + "\r\n")
-
-    #Return the answer (0 for false, 1 for true)
-    return quesitons[random][0]
 
 while True:
     #s.send("PRIVMSG #cuhacking :/w angelonfira test\r\n")
@@ -74,25 +60,44 @@ while True:
 
                 badUserName = username.split()
                 print("test username " + badUserName[0] + "|")
+                #verify that we are not setting twitch to be a user
                 if badUserName[0] <> "tmi.twitch.tv" and badUserName[0] <> "cuhacking.tmi.twitch.tv":
+                    #if the user that just sent a message is not part of the server,
+                    #send them a welcome message
                     if username not in server:
+                        #then add them to the list of users known
                         server.append(username)
                         if message <> "!join":
-                            Send_message("Welcome to my stream, " + username + " type !join to join the game.")
+                            Send_message(s, "Welcome to my stream, " + username + " type !join to join the game.")
 
+                    #if we are in the lobby
                     if state == "lobby":
+                        #if the player is not joining the game already and want to
                         if username not in game and message == "!join":
+                            #add them to the server
                             game.append([randint(0, 100), username])
-                            Send_message(username + " has joined the game PogChamp")
+                            Send_message(s, username + " has joined the game PogChamp")
                         elif message == "!join":
-                            Send_message(username + " , you're already in the game DansGame ")
+                            Send_message(s, username + " , you're already in the game DansGame ")
 
-                        if message == "!start":
+                        #verify mode and set it
+                        if message[:5] == "!mode":
+                            if message[6:] in modes:
+                                mode = message[6:]
+                                Send_message(s, username + " , the mode has been set")
+                            else:
+                                Send_message(s, username + " , that is not a valid mode")
+
+                        #verify conditions for start
+                        if message == "!start" and mode <> "":
                             print game
+
+                            #if teamNum == 1:
                             gameTeam = []
                             team1 = []
                             team2 = []
                             game.sort()
+                            #create teams
                             for i in range(0, len(game)):
                                 gameTeam.append(game[i][1])
                                 if i < len(game) / 2:
@@ -104,32 +109,14 @@ while True:
                             print team1
                             print team2
                             #Ask a question
-                            answer = askQuestion(questions)
+                        elif message == "!start" and mode == "":
+                            Send_message(s, username + " , the mode has not been set yet! Enter !mode *mode name* to set it.")
 
-                            for p in range(0, len(team1)):
-                                Send_whisper(str(team1[p]) + ", you're on team 1 with " + str(len(team1) - 1) + " other players", str(team1[p]))
+                            if (mode == "trivia"):
+                                gameClass = TfTrivia(gameTeam, s)
 
-                            for p in range(0, len(team2)):
-                                Send_whisper(str(team2[p]) + ", you're on team 2 with " + str(len(team2) - 1) + " other players", str(team2[p]))
-
+                    #run the game. problem with this, not able to call function
                     if state == "game":
-                        print "ingame"
-
-                if MODT:
-                    #print (username + ": " + message)
-
-                    # You can add all your plain commands here
-                    if message == "Hey":
-                        Send_message("Fuck off, " + username)
-                        Send_message("Are u trying to steal our idea plebs?")
-                        print ("Sending Message")
-
-                    if UserWaiting == username:
-                        Send_message("Welcome to my stream, " + username)
-                        print ("Sending Message")
-
-
-
-                for l in parts:
-                    if "End of /NAMES list" in l:
-                        MODT = True
+                        if gameClass.processMessage(message, username, s):
+                            state = "lobby"
+                            mode = ""
