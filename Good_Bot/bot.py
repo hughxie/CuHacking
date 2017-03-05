@@ -1,4 +1,5 @@
 import socket, string
+from random import randint
 
 from commands import *
 from functions import *
@@ -9,9 +10,12 @@ PORT = 6667
 PASS = "oauth:1ums1vm612j3vhtb4ocxztzh77rs4h"
 readbuffer = ""
 MODT = True
+state = "lobby"
 UserWaiting = ""
 server = []
 game = []
+team1 = []
+team2 = []
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -24,13 +28,16 @@ s.send("JOIN #cuhacking \r\n")
 def Send_message(message):
     s.send("PRIVMSG #cuhacking :" + message + "\r\n")
 
+def Send_whisper(message, player):
+    s.send("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
+    print("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
+
 while True:
     readbuffer = readbuffer + s.recv(1024)
     temp = string.split(readbuffer, "\n")
     readbuffer = temp.pop()
 
     for line in temp:
-        print(line)
         # Checks whether the message is PING because its a method of Twitch to check if you're afk
         if (line[0] == "PING"):
             s.send("PONG %s\r\n" % line[1])
@@ -48,17 +55,43 @@ while True:
                 usernamesplit = string.split(parts[1], "!")
                 username = usernamesplit[0]
 
-                # Only works after twitch is done announcing stuff (MODT = Message of the day)
-                if username not in server:
-                    server.append(username)
-                    if message <> "!join":
-                        Send_message("Welcome to my stream, " + username + " type !join to join the game.")
+                if username <> "tmi.twitch.tv" and username <> "cuhacking.tmi.twitch.tv":
+                    if username not in server:
+                        server.append(username)
+                        if message <> "!join":
+                            Send_message("Welcome to my stream, " + username + " type !join to join the game.")
 
-                if username not in game and message == "!join":
-                    game.append(username)
-                    Send_message(username + " has joined the game PogChamp")
-                elif message == "!join":
-                    Send_message(username + " , you're already in the game DansGame ")
+                    if state == "lobby":
+                        if message == "!join":#username not in game and message == "!join":
+                            game.append([randint(0, 100), username])
+                            Send_message(username + " has joined the game PogChamp")
+                        elif message == "!join":
+                            Send_message(username + " , you're already in the game DansGame ")
+
+                        if message == "!start":
+                            print game
+                            print 
+                            team1 = []
+                            team2 = []
+                            game.sort()
+                            for i in range(0, len(game)):
+                                if i < len(game) / 2:
+                                    team1.append(game[i][1])
+                                else:
+                                    team2.append(game[i][1])
+                                print("added a player")
+                            #state = "game"
+                            print team1
+                            print team2
+
+                            for p in range(0, len(team1)):
+                                Send_whisper(str(team1[p]) + ", you're on team 1 with " + str(len(team1)) + " other players", str(team1[p]))
+
+                            for p in range(0, len(team2)):
+                                Send_whisper(str(team2[p]) + ", you're on team 2 with " + str(len(team2)) + " other players", str(team2[p]))
+
+                    if state == "game":
+                        print "ingame"
 
                 if MODT:
                     print (username + ": " + message)
