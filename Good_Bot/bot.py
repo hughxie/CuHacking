@@ -13,13 +13,12 @@ MODT = True
 state = "lobby"
 UserWaiting = ""
 modes = ["trivia"]
-mode = ""
+mode = "trivia"
 server = []
 game = []
 gameTeam = []
 team1 = []
 team2 = []
-gameClass = 0
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -96,7 +95,7 @@ while True:
                             print team1
                             print team2
                             #Ask a question
-                        elif mode == "":
+                        elif message == "!start" and mode == "":
                             Send_message(s, username + " , the mode has not been set yet! Enter !mode *mode name* to set it.")
 
                             if (mode == "trivia"):
