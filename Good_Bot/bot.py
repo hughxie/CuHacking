@@ -108,12 +108,12 @@ while True:
                             state = "game"
                             print team1
                             print team2
+
+                            if (mode == "trivia"):
+                                gameClass.setupTfTrivia(gameTeam, s)
                             #Ask a question
                         elif message == "!start" and mode == "":
                             Send_message(s, username + " , the mode has not been set yet! Enter !mode *mode name* to set it.")
-
-                            if (mode == "trivia"):
-                                gameClass = TfTrivia(gameTeam, s)
 
                     #run the game. problem with this, not able to call function
                     if state == "game":
