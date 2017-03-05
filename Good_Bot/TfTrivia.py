@@ -1,6 +1,7 @@
 from functions import *
 
 class TfTrivia:
+    #Variables for use inside of the class
     rightAnswerCount = 0
     wrongAnswerCount = 0
     rightCount = 0
@@ -13,11 +14,13 @@ class TfTrivia:
     playerSubmitted = []
     totalQuestions = 8
 
+    #setup a new game
     def __init__ (self, gameTeamIn, s):
         self.userIn = userInput
         self.name = userName
         gameTeam = gameTeamIn
 
+        #send a whisper to all the players on team 1 (not working yet)
         for p in range(0, len(team1)):
             Send_whisper(s, str(team1[p]) + ", you're on team 1 with " + str(len(team1) - 1) + " other players", str(team1[p]))
 
@@ -26,7 +29,8 @@ class TfTrivia:
 
         nextQuestion(s)
 
-    def processMessage(message, username, s):
+    #main game check for a trivia game
+    def processMessage(self, message, username, s):
         if (message == "true"):
             #add 1 to the tally of people who have chosen
             rightCount += 1
@@ -46,6 +50,7 @@ class TfTrivia:
                 rightAnswerCount = trueCount
                 wrongAnswerCount = falseCount
 
+            #display a message for the players
             if trueCount > falseCount:
                 Send_message(s, "More people got that right")
                 finalScores += 1
@@ -55,18 +60,23 @@ class TfTrivia:
             else:
                 Send_message(s, "That was a tie!")
 
+            #see if we can ask another question
             totalQuestions -= 1
             if totalQuestions <= 0:
+                #end the game
                 endGame(s)
                 return 1
             else:
+                #ask a new question. game is not over yet
                 nextQuestion(s)
                 return 0
 
-    def nextQuestion(s):
+    def nextQuestion(self, s):
+        #find a question
         answer = askQuestion(questions, s)
 
-    def endGame(s):
+    def endGame(self, s):
+        #leave messages for the player
         if finalScores > 0:
             Send_message(s, "Game is over. Right got " + finalScores + " more points than wrong")
         elif finalScores < 0:

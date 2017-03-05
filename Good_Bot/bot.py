@@ -20,6 +20,10 @@ gameTeam = []
 team1 = []
 team2 = []
 
+#problem with this. we need to make the game class, and store it in a
+#variable that is availible throughout the whole bot.py
+gameClass = TfTrivia()
+
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
 s.connect((HOST, PORT))
@@ -56,19 +60,27 @@ while True:
 
                 badUserName = username.split()
                 print("test username " + badUserName[0] + "|")
+                #verify that we are not setting twitch to be a user
                 if badUserName[0] <> "tmi.twitch.tv" and badUserName[0] <> "cuhacking.tmi.twitch.tv":
+                    #if the user that just sent a message is not part of the server,
+                    #send them a welcome message
                     if username not in server:
+                        #then add them to the list of users known
                         server.append(username)
                         if message <> "!join":
                             Send_message(s, "Welcome to my stream, " + username + " type !join to join the game.")
 
+                    #if we are in the lobby
                     if state == "lobby":
+                        #if the player is not joining the game already and want to
                         if username not in game and message == "!join":
+                            #add them to the server
                             game.append([randint(0, 100), username])
                             Send_message(s, username + " has joined the game PogChamp")
                         elif message == "!join":
                             Send_message(s, username + " , you're already in the game DansGame ")
 
+                        #verify mode and set it
                         if message[:5] == "!mode":
                             if message[6:] in modes:
                                 mode = message[6:]
@@ -76,6 +88,7 @@ while True:
                             else:
                                 Send_message(s, username + " , that is not a valid mode")
 
+                        #verify conditions for start
                         if message == "!start" and mode <> "":
                             print game
 
@@ -84,6 +97,7 @@ while True:
                             team1 = []
                             team2 = []
                             game.sort()
+                            #create teams
                             for i in range(0, len(game)):
                                 gameTeam.append(game[i][1])
                                 if i < len(game) / 2:
@@ -101,6 +115,7 @@ while True:
                             if (mode == "trivia"):
                                 gameClass = TfTrivia(gameTeam, s)
 
+                    #run the game. problem with this, not able to call function
                     if state == "game":
                         if gameClass.processMessage(message, username, s):
                             state = "lobby"
