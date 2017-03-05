@@ -27,12 +27,12 @@ def Send_whisper(s, message, player):
     time.sleep(1)
     print("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
 
-def askQuestion(questions, s):
+def askQuestion(s):
     #Pick a random question from the list
     random = randint(0, len(questions)-1)
 
     #Ask the question
-    Send_message(s, str(questions[random][1]) + " answer true or false.\r\n")
+    Send_message(s, str(questions[random][1]) + " Answer true or false.\r\n")
 
     #Return the answer (0 for false, 1 for true)
     return questions[random][0]

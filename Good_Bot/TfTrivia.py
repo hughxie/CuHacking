@@ -31,30 +31,30 @@ class TfTrivia:
 
     #main game check for a trivia game
     def processMessage(self, message, username, s):
-        if (self.message == "true"):
+        if (message == "true"):
             #add 1 to the tally of people who have chosen
             self.rightCount += 1#rightCount + 1
             #add the player to the list of players who have voted
             self.playerSubmitted.append(username)
             
-        elif (self.message == "false"):
-            self.falseCount += 1
+        elif (message == "false"):
+            self.wrongCount += 1
             self.playerSubmitted.append(username)
 
         if len(self.gameTeam) == len(self.playerSubmitted):
             #find out how many people choose the right answer
             if (self.answer == 0):
-                self.rightAnswerCount = self.falseCount
-                self.wrongAnswerCount = self.trueCount
-            elif (answer == 1):
-                self.rightAnswerCount = self.trueCount
-                self.wrongAnswerCount = self.falseCount
+                self.rightAnswerCount = self.wrongCount
+                self.wrongAnswerCount = self.rightCount
+            elif (self.answer == 1):
+                self.rightAnswerCount = self.rightCount
+                self.wrongAnswerCount = self.wrongCount
 
             #display a message for the players
-            if self.trueCount > self.falseCount:
+            if self.rightCount > self.wrongCount:
                 Send_message(s, "More people got that right")
                 self.finalScores += 1
-            elif self.trueCount < self.falseCount:
+            elif self.rightCount < self.wrongCount:
                 Send_message(s, "More people got that wrong")
                 self.finalScores -= 1
             else:
