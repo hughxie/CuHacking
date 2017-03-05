@@ -1,8 +1,8 @@
 import socket, string, time
 from random import randint
 
-#from commands import *
-#from functions import *
+from TfTrivia import *
+from functions import *
 # Set all the variables necessary to connect to Twitch IRC
 HOST = "irc.twitch.tv"
 NICK = "hackbot"
@@ -17,12 +17,9 @@ mode = ""
 server = []
 game = []
 gameTeam = []
-playersSubmitted = []
 team1 = []
 team2 = []
-questionsAsked = 0
-answer = -1
-trueCount = falseCount = 0
+gameClass = 0
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -73,14 +70,17 @@ while True:
                         elif message == "!join":
                             Send_message(s, username + " , you're already in the game DansGame ")
 
-                        if messageSplit[:5] == "!mode":
-                            if messageSplit[5:] in modes
-                                mode = messageSplit[5:]
+                        if message[:5] == "!mode":
+                            if message[6:] in modes:
+                                mode = message[6:]
+                                Send_message(s, username + " , the mode has been set")
+                            else:
+                                Send_message(s, username + " , that is not a valid mode")
 
                         if message == "!start" and mode <> "":
                             print game
 
-                            if teamNum = 1
+                            #if teamNum == 1:
                             gameTeam = []
                             team1 = []
                             team2 = []
@@ -96,28 +96,13 @@ while True:
                             print team1
                             print team2
                             #Ask a question
+                        elif mode == "":
+                            Send_message(s, username + " , the mode has not been set yet! Enter !mode *mode name* to set it.")
 
-                            if (mode = "trivia"):
+                            if (mode == "trivia"):
                                 gameClass = TfTrivia(gameTeam, s)
 
                     if state == "game":
-                        gameClass.processMessage(message, username, s)
-                        
-                if MODT:
-                    #print (username + ": " + message)
-
-                    # You can add all your plain commands here
-                    if message == "Hey":
-                        Send_message(s, "Fuck off, " + username)
-                        Send_message(s, "Are u trying to steal our idea plebs?")
-                        print ("Sending Message")
-
-                    if UserWaiting == username:
-                        Send_message(s, "Welcome to my stream, " + username)
-                        print ("Sending Message")
-
-
-
-                for l in parts:
-                    if "End of /NAMES list" in l:
-                        MODT = True
+                        if gameClass.processMessage(message, username, s):
+                            state = "lobby"
+                            mode = ""
