@@ -1,8 +1,8 @@
 import socket, string, time
 from random import randint
 
-from commands import *
-from functions import *
+#from commands import *
+#from functions import *
 # Set all the variables necessary to connect to Twitch IRC
 HOST = "irc.twitch.tv"
 NICK = "hackbot"
@@ -17,6 +17,8 @@ game = []
 team1 = []
 team2 = []
 answer = -1
+
+questions = [[0, "Richard is Cool"], [1, "Forest > Aidan"]]
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -34,6 +36,16 @@ def Send_whisper(message, player):
     #s.send("PRIVMSG #AngelOnFira :test\r\n")
     time.sleep(1)
     print("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
+
+def askQuestion(questions):
+    #Pick a random question from the list
+    random = randint(0, len(questions))
+
+    #Ask the question
+    s.send("PRIVMSG #cuhacking :" + quesitons[random][1] + "\r\n")
+
+    #Return the answer (0 for false, 1 for true)
+    return quesitons[random][0]
 
 while True:
     #s.send("PRIVMSG #cuhacking :/w angelonfira test\r\n")
@@ -77,11 +89,12 @@ while True:
 
                         if message == "!start":
                             print game
-                            print 
+                            gameTeam = []
                             team1 = []
                             team2 = []
                             game.sort()
                             for i in range(0, len(game)):
+                                gameTeam.append(game[i][1])
                                 if i < len(game) / 2:
                                     team1.append(game[i][1])
                                 else:
@@ -90,7 +103,8 @@ while True:
                             state = "game"
                             print team1
                             print team2
-                            #askQuestion(
+                            #Ask a question
+                            answer = askQuestion(questions)
 
                             for p in range(0, len(team1)):
                                 Send_whisper(str(team1[p]) + ", you're on team 1 with " + str(len(team1) - 1) + " other players", str(team1[p]))
