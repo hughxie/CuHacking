@@ -13,7 +13,7 @@ class TfTrivia:
         self.playerSubmitted = []
         self.answer = -1
         self.finalScores = 0
-        self.totalQuestions = 8
+        self.totalQuestions = 2
 
     def setupTfTrivia(self, gameTeamIn, s):
         self.gameTeam = gameTeamIn
@@ -64,19 +64,24 @@ class TfTrivia:
             self.totalQuestions -= 1
             if self.totalQuestions <= 0:
                 #end the game
-                endGame(s)
+                if self.finalScores > 0:
+                    Send_message(s, "Game is over. Right got " + str(self.finalScores) + " more points than wrong")
+                    sendHTTP(0)
+                elif self.finalScores < 0:
+                    Send_message(s, "Game is over. Wrong got " + str(abs(self.finalScores)) + " more points than right")
+                    sendHTTP(1)
+                else:
+                    Send_message(s, "Right got just as many points as wrong!")
                 return 1
             else:
                 #ask a new question. game is not over yet
                 self.answer = askQuestion(s)
-                return 0
 
-    def endGame(self, s):
-        #leave messages for the player
-        if self.finalScores > 0:
-            Send_message(s, "Game is over. Right got " + self.finalScores + " more points than wrong")
-        elif self.finalScores < 0:
-            Send_message(s, "Game is over. Wrong got " + self.finalScores + " more points than right")
-        else:
-            Send_message(s, "Right got just as many points as wrong!")
+                self.rightAnswerCount = 0
+                self.wrongAnswerCount = 0
+                self.rightCount = 0
+                self.wrongCount = 0
+                self.playerSubmitted = []
+                self.finalScores = 0
+                return 0
             

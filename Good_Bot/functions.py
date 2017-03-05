@@ -1,4 +1,5 @@
 from random import randint
+import httplib
 
 questions = [[0, "Richard is Cool"], [1, "Forest > Aidan"],\
              [1,"As far as has ever been reported, no-one has ever seen an ostrich bury its head in the sand."],\
@@ -36,3 +37,7 @@ def askQuestion(s):
 
     #Return the answer (0 for false, 1 for true)
     return questions[random][0]
+
+def sendHTTP(message):
+	conn = httplib.HTTPConnection("192.168.43.243", 80)
+	conn.request("GET", "/?will=" + str(message))

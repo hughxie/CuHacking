@@ -120,3 +120,5 @@ while True:
                         if gameClass.processMessage(message, username, s):
                             state = "lobby"
                             mode = ""
+                            game = []
+                            gameTeam = []
