@@ -1,8 +1,8 @@
 import socket, string, time
 from random import randint
 
-#from commands import *
-#from functions import *
+from TfTrivia import *
+from functions import *
 # Set all the variables necessary to connect to Twitch IRC
 HOST = "irc.twitch.tv"
 NICK = "hackbot"
@@ -12,28 +12,17 @@ readbuffer = ""
 MODT = True
 state = "lobby"
 UserWaiting = ""
+modes = ["trivia"]
+mode = "trivia"
 server = []
 game = []
 gameTeam = []
-playersSubmitted = []
 team1 = []
 team2 = []
-questionsAsked = 0
-answer = -1
-trueCount = falseCount = 0
 
-questions = [[0, "Richard is Cool"], [1, "Forest > Aidan"],\
-             [1,"As far as has ever been reported, no-one has ever seen an ostrich bury its head in the sand."],\
-             [1, "Approximately one quarter of human bones are in the feet."],[1, "Popeye's nephews are called Peepeye, Poopeye, Pipeye and Pupeye"], \
-             [0,"In ancient Rome, a special room called a vomitorium was available for diners to purge food in during meals."],[0,"The average person will shed 10 pounds of skin during their lifetime."],\
-             [1,"Sneezes regularly exceed 100 mph."],[1,"A slug has green blood."],\
-             [0,"The Great Wall of China is visible from the moon."],[1,"Virtually all Las Vegas gambling casinos ensure that they have no clocks"],
-             [1,"The total surface area of two human lungs have a surface area of approximately 70 square metres."],[1,"You cannot cry in space"],\
-             [1,"The inventor of the light bulb, Thomas Edison, was afraid of the dark."],[0,"The letter T is the most common in the English Language"],\
-             [1,"The strongest muscle in proportion to its size in the human body is the tongue"],\
-             [1,"A duck's quack doesn't echo."], [1,"A pregnant goldfish is called a twit"],[0,"Women can read smaller print than men, men have better hearing"],\
-             [1, "Ben Franklin's formal education ended at 10 years old."],[1,"Everyday more money is printed for monopoly than the US Treasury"]
-             ]
+#problem with this. we need to make the game class, and store it in a
+#variable that is availible throughout the whole bot.py
+gameClass = TfTrivia()
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -43,24 +32,6 @@ s.send("NICK " + NICK + "\r\n")
 s.send("JOIN #cuhacking \r\n")
 
 # Method for sending a message
-def Send_message(message):
-    s.send("PRIVMSG #cuhacking :" + message + "\r\n")
-
-def Send_whisper(message, player):
-    s.send("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
-    #s.send("PRIVMSG #AngelOnFira :test\r\n")
-    time.sleep(1)
-    print("PRIVMSG #cuhacking :/w " + player + " " + message + "\r\n")
-
-def askQuestion(questions):
-    #Pick a random question from the list
-    random = randint(0, len(questions)-1)
-
-    #Ask the question
-    s.send("PRIVMSG #cuhacking :" + questions[random][1] + "\r\n" + " answer true or false.")
-
-    #Return the answer (0 for false, 1 for true)
-    return questions[random][0]
 
 while True:
     #s.send("PRIVMSG #cuhacking :/w angelonfira test\r\n")
@@ -89,25 +60,44 @@ while True:
 
                 badUserName = username.split()
                 print("test username " + badUserName[0] + "|")
+                #verify that we are not setting twitch to be a user
                 if badUserName[0] <> "tmi.twitch.tv" and badUserName[0] <> "cuhacking.tmi.twitch.tv":
+                    #if the user that just sent a message is not part of the server,
+                    #send them a welcome message
                     if username not in server:
+                        #then add them to the list of users known
                         server.append(username)
                         if message <> "!join":
-                            Send_message("Welcome to my stream, " + username + " type !join to join the game.")
+                            Send_message(s, "Welcome to my stream, " + username + " type !join to join the game.")
 
+                    #if we are in the lobby
                     if state == "lobby":
+                        #if the player is not joining the game already and want to
                         if username not in game and message == "!join":
+                            #add them to the server
                             game.append([randint(0, 100), username])
-                            Send_message(username + " has joined the game PogChamp")
+                            Send_message(s, username + " has joined the game PogChamp")
                         elif message == "!join":
-                            Send_message(username + " , you're already in the game DansGame ")
+                            Send_message(s, username + " , you're already in the game DansGame ")
 
-                        if message == "!start":
+                        #verify mode and set it
+                        if message[:5] == "!mode":
+                            if message[6:] in modes:
+                                mode = message[6:]
+                                Send_message(s, username + " , the mode has been set")
+                            else:
+                                Send_message(s, username + " , that is not a valid mode")
+
+                        #verify conditions for start
+                        if message == "!start" and mode <> "":
                             print game
+
+                            #if teamNum == 1:
                             gameTeam = []
                             team1 = []
                             team2 = []
                             game.sort()
+                            #create teams
                             for i in range(0, len(game)):
                                 gameTeam.append(game[i][1])
                                 if i < len(game) / 2:
@@ -119,66 +109,14 @@ while True:
                             print team1
                             print team2
                             #Ask a question
-                            answer = askQuestion(questions)
+                        elif message == "!start" and mode == "":
+                            Send_message(s, username + " , the mode has not been set yet! Enter !mode *mode name* to set it.")
 
-                            for p in range(0, len(team1)):
-                                Send_whisper(str(team1[p]) + ", you're on team 1 with " + str(len(team1) - 1) + " other players", str(team1[p]))
+                            if (mode == "trivia"):
+                                gameClass = TfTrivia(gameTeam, s)
 
-                            for p in range(0, len(team2)):
-                                Send_whisper(str(team2[p]) + ", you're on team 2 with " + str(len(team2) - 1) + " other players", str(team2[p]))
-
+                    #run the game. problem with this, not able to call function
                     if state == "game":
-                        #Check if the user is part of this current game, and if they have not answered yet
-                        if username in gameTeam and username not in playerSubmitted:
-                            #if they answered true
-                            if (message == "true"):
-                                #add 1 to the tally of people who have chosen
-                                trueCount++
-                                #add the player to the list of players who have voted
-                                playerSubmitted.append(username)
-                                
-                            elif (message == "false"):
-                                falseCount++
-                                playerSubmitted.append(username)
-
-                        #if the list of players who have voted is equal to the list of players playing
-                        if len(playerSubmitted) and len(gameTeam):
-                            #find out how many people choose the right answer
-                            if (answer = 0):
-                                rightAnswerCount = falseCount
-                                wrongAnswerCount = trueCount
-                            elif (answer = 1):
-                                rightAnswerCount = trueCount
-                                wrongAnswerCount = falseCount
-
-                            #display how many people got it right and wrong    
-                            Send_message(str(rightAnswerCount) + " people got that question right, " + str(wrongAnswerCount) + " people got it wrong.")
-
-                            #reset all of the numbers
-                            rightAnswerCount = wrongAnswerCount = trueCount = falseCount = 0
-
-                            #you need to set the playerSubmitted list back to empty
-
-                            #make another question
-                            answer = askQuestion(questions)
-
-                            #here we need to check that we still need to ask questions rather than just returning to the lobby
-
-                if MODT:
-                    #print (username + ": " + message)
-
-                    # You can add all your plain commands here
-                    if message == "Hey":
-                        Send_message("Fuck off, " + username)
-                        Send_message("Are u trying to steal our idea plebs?")
-                        print ("Sending Message")
-
-                    if UserWaiting == username:
-                        Send_message("Welcome to my stream, " + username)
-                        print ("Sending Message")
-
-
-
-                for l in parts:
-                    if "End of /NAMES list" in l:
-                        MODT = True
+                        if gameClass.processMessage(message, username, s):
+                            state = "lobby"
+                            mode = ""
