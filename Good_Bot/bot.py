@@ -4,14 +4,14 @@ from commands import *
 from functions import *
 # Set all the variables necessary to connect to Twitch IRC
 HOST = "irc.twitch.tv"
-NICK = "cuhacking"
+NICK = "hackbot"
 PORT = 6667
 PASS = "oauth:1ums1vm612j3vhtb4ocxztzh77rs4h"
 readbuffer = ""
 MODT = True
+UserWaiting = ""
 server = []
 game = []
-
 
 # Connecting to Twitch IRC by passing credentials and joining a certain channel
 s = socket.socket()
@@ -65,8 +65,15 @@ while True:
 
                     # You can add all your plain commands here
                     if message == "Hey":
+                        Send_message("Fuck off, " + username)
+                        Send_message("Are u trying to steal our idea plebs?")
+                        print ("Sending Message")
+
+                    if UserWaiting == username:
                         Send_message("Welcome to my stream, " + username)
                         print ("Sending Message")
+
+
 
                 for l in parts:
                     if "End of /NAMES list" in l:
