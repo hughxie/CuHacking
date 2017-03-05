@@ -113,7 +113,7 @@ while True:
                             Send_message(s, username + " , the mode has not been set yet! Enter !mode *mode name* to set it.")
 
                             if (mode == "trivia"):
-                                gameClass = TfTrivia(gameTeam, s)
+                                gameClass.setupTfTrivia(gameTeam, s)
 
                     #run the game. problem with this, not able to call function
                     if state == "game":

@@ -10,12 +10,13 @@ class TfTrivia:
     playerSubmitted = []
     answer = -1
     finalScores = 0
-
-    playerSubmitted = []
     totalQuestions = 8
 
     #setup a new game
-    def __init__ (self, gameTeamIn, s):
+    def __init__ (self):
+        answer = -1
+
+    def setupTfTrivia(self, gameTeamIn, s):
         self.userIn = userInput
         self.name = userName
         gameTeam = gameTeamIn
@@ -41,7 +42,7 @@ class TfTrivia:
             falseCount += 1
             playerSubmitted.append(username)
 
-        if len(playerSubmitted) and len(gameTeam):
+        if len(gameTeam) == len(playerSubmitted):
             #find out how many people choose the right answer
             if (answer == 0):
                 rightAnswerCount = falseCount
